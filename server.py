@@ -11,7 +11,7 @@ import requests
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__, static_folder="static")
+app = Flask(__name__, static_folder="static", static_url_path="")
 CORS(app)
 
 
@@ -38,9 +38,6 @@ _session = None
 _session_time = 0
 SESSION_TTL_SECONDS = 60 * 4
 
-# In-memory history for the Spot & PCR chart. Resets on server restart
-# (free-tier Render sleeps after 15 min idle) -- builds up while the app is
-# actively being used since there's no database in this setup.
 _history = []
 MAX_HISTORY_POINTS = 200
 
