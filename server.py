@@ -11,7 +11,7 @@ import requests
 from flask import Flask, jsonify, request, send_from_directory
 from flask_cors import CORS
 
-app = Flask(__name__, static_folder="static", static_url_path="")
+app = Flask(__name__, static_folder="static")
 CORS(app)
 
 
@@ -36,7 +36,7 @@ HEADERS = {
 
 _session = None
 _session_time = 0
-SESSION_TTL_SECONDS = 60 * 4
+SESSION_TTL_SECONDS = 240
 
 _history = []
 MAX_HISTORY_POINTS = 200
@@ -61,14 +61,16 @@ def option_chain():
         s = get_session()
         r = s.get(NSE_OPTION_CHAIN, params={"symbol": symbol}, timeout=20)
         if r.status_code != 200:
-            return jsonify({"error": f"NSE returned {r.status_code}"}), 502
+            return jsonify({"error": "NSE returned " + str(r.status_code)}), 502
         raw = r.json()
     except Exception as e:
         return jsonify({"error": str(e)}), 502
 
     records = raw.get("records", {})
     spot = records.get("underlyingValue")
-    expiry = (records.get("expiryDates") or [None])[0]
+    expiry_list = records.get("expiryDates") or [None]
+    expiry = expiry_list[0]
+
     rows = []
     for item in records.get("data", []):
         if item.get("expiryDate") != expiry:
@@ -92,11 +94,7 @@ def option_chain():
     total_put_oi = sum(r["putOi"] for r in rows)
     pcr = round(total_put_oi / total_call_oi, 2) if total_call_oi else None
 
-    _history.append({
-        "t": dt.datetime.utcnow().isoformat() + "Z",
-        "spot": spot,
-        "pcr": pcr,
-    })
+    _history.append({"t": dt.datetime.utcnow().isoformat() + "Z", "spot": spot, "pcr": pcr})
     if len(_history) > MAX_HISTORY_POINTS:
         del _history[0]
 
@@ -132,7 +130,7 @@ def participant_oi():
         s = get_session()
         r = s.get(url, timeout=20)
         if r.status_code != 200:
-            return jsonify({"error": f"NSE returned {r.status_code} for {url}"}), 502
+            return jsonify({"error": "NSE returned " + str(r.status_code) + " for " + url}), 502
         text = r.content.decode("utf-8-sig")
     except Exception as e:
         return jsonify({"error": str(e)}), 502
