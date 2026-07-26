@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MarketRadar</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="brand">MR <span>MarketRadar</span></div>
+      <div class="topmetric"><span class="tm-label">NIFTY 50</span><span class="tm-value" id="hSpot">--</span></div>
+      <div class="topmetric"><span class="tm-label">CHANGE</span><span class="tm-value" id="hChange">--</span></div>
+      <div class="topmetric"><span class="tm-label">PCR</span><span class="tm-value" id="hPcr">--</span></div>
+    </div>
+    <nav class="tabs">
+      <button class="tab-btn active" data-tab="dashboard">Market Dashboard</button>
+      <button class="tab-btn" data-tab="optionchain">Option Chain</button>
+    </nav>
+    <div class="topbar-right">
+      <span class="live-dot"></span> Live feed
+    </div>
+  </header>
+
+  <section id="tab-dashboard" class="tab-content active">
+    <div class="metric-strip">
+      <div class="metric-card"><div class="metric-label">Nifty Spot</div><div class="metric-value" id="mSpot">--</div></div>
+      <div class="metric-card"><div class="metric-label">Put / Call</div><div class="metric-value" id="mPcr">--</div><div class="metric-sub" id="mPcrTag">--</div></div>
+      <div class="metric-card"><div class="metric-label">Resistance</div><div class="metric-value" id="mResistance">--</div><div class="metric-sub">max call OI</div></div>
+      <div class="metric-card"><div class="metric-label">Support</div><div class="metric-value" id="mSupport">--</div><div class="metric-sub">max put OI</div></div>
+      <div class="metric-card"><div class="metric-label">FII Net</div><div class="metric-value" id="mFiiNet">--</div><div class="metric-sub" id="mFiiLS">--</div></div>
+      <div class="metric-card"><div class="metric-label">DII Net</div><div class="metric-value" id="mDiiNet">--</div></div>
+    </div>
+
+    <div class="grid-3">
+      <div class="panel">
+        <div class="panel-header"><h2>Prediction Bias</h2></div>
+        <div class="gauge-wrap">
+          <svg viewBox="0 0 200 110" class="gauge">
+            <path d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="#1F2A3A" stroke-width="14"/>
+            <path id="gaugeArc" d="M 10 100 A 90 90 0 0 1 190 100" fill="none" stroke="#5EEAD4" stroke-width="14" stroke-dasharray="283" stroke-dashoffset="283"/>
+          </svg>
+          <div class="gauge-value" id="gaugeValue">--</div>
+          <div class="gauge-label" id="gaugeLabel">--</div>
+          <div class="gauge-sub" id="gaugeSub">--</div>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Signal Breakdown</h2></div>
+        <div id="signalList" class="signal-list"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Anomaly Radar</h2></div>
+        <div id="anomalyList" class="anomaly-list"></div>
+      </div>
+    </div>
+
+    <div class="grid-2">
+      <div class="panel">
+        <div class="panel-header"><h2>Futures — Index Long / Short</h2><span class="panel-sub">by participant</span></div>
+        <div class="table-wrap">
+          <table id="futTable">
+            <thead><tr><th class="left">Client</th><th>Long</th><th>Short</th><th>Net</th><th>Stance</th></tr></thead>
+            <tbody id="futBody"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+          </table>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-header"><h2>Net Position</h2><span class="panel-sub">FII / DII / Pro / Client</span></div>
+        <div id="netPositionChart" class="bar-chart"></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h2>Option Writers — Index Call / Put</h2><span class="panel-sub">by participant</span></div>
+      <div class="table-wrap">
+        <table id="optTable">
+          <thead><tr><th class="left">Client</th><th>Call Long</th><th>Call Short</th><th>Put Long</th><th>Put Short</th><th>Net</th></tr></thead>
+          <tbody id="optBody"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="tab-optionchain" class="tab-content">
+    <div class="metric-strip">
+      <div class="metric-card"><div class="metric-label">Total Call OI</div><div class="metric-value" id="ocTotalCall">--</div><div class="metric-sub">contracts</div></div>
+      <div class="metric-card"><div class="metric-label">Total Put OI</div><div class="metric-value" id="ocTotalPut">--</div><div class="metric-sub">contracts</div></div>
+      <div class="metric-card"><div class="metric-label">Put / Call Ratio</div><div class="metric-value" id="ocPcr">--</div></div>
+      <div class="metric-card"><div class="metric-label">Max Call OI</div><div class="metric-value" id="ocMaxCall">--</div><div class="metric-sub">resistance</div></div>
+      <div class="metric-card"><div class="metric-label">Max Put OI</div><div class="metric-value" id="ocMaxPut">--</div><div class="metric-sub">support</div></div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-header"><h2>Option Chain</h2><span class="panel-sub">NIFTY · live from NSE (auto-refreshes every 60s)</span></div>
+      <div class="table-wrap">
+        <table id="ocTable">
+          <thead>
+            <tr><th>Call Chg OI</th><th>Call OI</th><th>Call LTP</th><th class="strike-col">Strike</th><th>Put LTP</th><th>Put OI</th><th>Put Chg OI</th></tr>
+          </thead>
+          <tbody id="ocBody"><tr><td colspan="7" class="loading">Loading option chain…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <footer>MarketRadar · unofficial NSE data, personal use only · Last refresh: <span id="lastRefresh">--</span></footer>
+
+  <script src="script.js"></script>
+</body>
+                                                                     </html>
