@@ -187,19 +187,32 @@ def participant_oi():
     if date_str:
         d = dt.datetime.strptime(date_str, "%d-%m-%Y")
     else:
-        d = dt.datetime.utcnow()
+        d = get_latest_trading_date()
+
+    text = None
+    last_err = None
+    tried_dates = []
+    for _ in range(6):
+        tried_dates.append(d.strftime("%d-%b-%Y"))
+        url = NSE_PARTICIPANT_OI.format(ddmmyyyy=d.strftime("%d%m%Y"))
+        try:
+            s = get_session()
+            r = s.get(url, timeout=20)
+            if r.status_code == 200:
+                text = r.content.decode("utf-8-sig")
+                break
+            else:
+                last_err = f"NSE returned {r.status_code} for {url}"
+        except Exception as e:
+            last_err = str(e)
+        if date_str:
+            break
+        d -= dt.timedelta(days=1)
         while d.weekday() >= 5:
             d -= dt.timedelta(days=1)
 
-    url = NSE_PARTICIPANT_OI.format(ddmmyyyy=d.strftime("%d%m%Y"))
-    try:
-        s = get_session()
-        r = s.get(url, timeout=20)
-        if r.status_code != 200:
-            return jsonify({"error": "NSE returned " + str(r.status_code) + " for " + url}), 502
-        text = r.content.decode("utf-8-sig")
-    except Exception as e:
-        return jsonify({"error": str(e)}), 502
+    if text is None:
+        return jsonify({"error": last_err, "triedDates": tried_dates}), 502
 
     reader = csv.reader(io.StringIO(text))
     parsed = []
